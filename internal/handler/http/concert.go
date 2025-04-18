@@ -67,16 +67,13 @@ func (h *ConcertHandler) bookingConcert(c *gin.Context) {
 }
 
 func (h *ConcertHandler) getConcertPurchaseHistory(c *gin.Context) {
-	var req entity.GetConcertPurchaseHistoryRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ResponseError(c, utils.ErrBadRequest("Invalid Body : "+err.Error(), "ConcertHandler.getConcertPurchaseHistory.ShouldBindJSON"))
-		return
-	}
+	var req entity.GetConcertPurchaseHistoryListRequest
 
 	ctx, cancel := context.WithTimeout(c, 10*time.Second)
 	defer cancel()
 
-	resp, err := h.concertUC.GetConcertPurchaseHistory(ctx, &req)
+	req.Search = append(req.Search, &entity.Filter{Field: "id", Value: c.Param("concert_id")})
+	resp, err := h.concertUC.GetConcertPurchaseHistoryList(ctx, &req)
 	if err != nil {
 		utils.ResponseError(c, err)
 		return

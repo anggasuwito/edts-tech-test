@@ -1,5 +1,10 @@
 package entity
 
+import (
+	"edts-tech-test/internal/utils"
+	"github.com/google/uuid"
+)
+
 type (
 	GetConcertListRequest struct {
 		*ListPaginationRequest
@@ -20,24 +25,24 @@ type (
 		*ConcertPurchaseHistory
 	}
 
-	GetConcertPurchaseHistoryRequest struct {
-		ConcertID string `json:"concert_id"`
+	GetConcertPurchaseHistoryListRequest struct {
+		*ListPaginationRequest
 	}
 
-	GetConcertPurchaseHistoryResponse struct {
+	GetConcertPurchaseHistoryListResponse struct {
 		*ListPaginationResponse
 		Data []*ConcertPurchaseHistory `json:"data"`
 	}
 
 	Concert struct {
-		ID              string `json:"id"`
-		AvailableFrom   string `json:"available_from"`
-		AvailableTo     string `json:"available_to"`
-		AvailableTicket int64  `json:"available_ticket"`
-		PlayAt          string `json:"play_at"`
-		Name            string `json:"name"`
-		Price           int64  `json:"price"`
-		CreatedAt       string `json:"created_at"`
+		ID            string `json:"id"`
+		AvailableFrom string `json:"available_from"`
+		AvailableTo   string `json:"available_to"`
+		TicketQuota   int64  `json:"ticket_quota"`
+		PlayAt        string `json:"play_at"`
+		Name          string `json:"name"`
+		Price         int64  `json:"price"`
+		CreatedAt     string `json:"created_at"`
 	}
 
 	ConcertPurchaseHistory struct {
@@ -48,5 +53,22 @@ type (
 		Price       int64  `json:"price"`
 		Qty         int64  `json:"qty"`
 		TotalPrice  int64  `json:"total_price"`
+		CreatedAt   string `json:"created_at"`
 	}
 )
+
+func (e *BookingConcertRequest) ValidateRequest() error {
+	if _, err := uuid.Parse(e.ConcertID); err != nil {
+		return utils.ErrBadRequest("Invalid concert id", "BookingConcertRequest.Validate.ConcertID")
+	}
+
+	if e.UserPhone == "" {
+		return utils.ErrBadRequest("Please fill user phone", "BookingConcertRequest.Validate.UserPhone")
+	}
+
+	if e.Qty < 1 {
+		return utils.ErrBadRequest("Please input quantity", "BookingConcertRequest.Validate.Qty")
+	}
+
+	return nil
+}

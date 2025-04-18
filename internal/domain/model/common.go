@@ -1,6 +1,10 @@
 package model
 
-import "database/sql"
+import (
+	"database/sql"
+	"edts-tech-test/internal/utils"
+	"gorm.io/gorm"
+)
 
 type BaseModel struct {
 	ID        string       `gorm:"column:id;primaryKey;size:36"`
@@ -11,4 +15,23 @@ type BaseModel struct {
 	DeletedAt sql.NullTime `gorm:"column:deleted_at;index;"`
 	DeletedBy string       `gorm:"column:deleted_by;size:36;"`
 	Note      string       `gorm:"column:note;size:255;"`
+}
+
+func (u *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
+	u.CreatedAt = sql.NullTime{Time: utils.TimeNow(), Valid: true}
+	u.UpdatedAt = sql.NullTime{Time: utils.TimeNow(), Valid: true}
+	return
+}
+
+func (u *BaseModel) AfterCreate(tx *gorm.DB) (err error) {
+	return
+}
+
+func (u *BaseModel) BeforeUpdate(tx *gorm.DB) (err error) {
+	u.UpdatedAt = sql.NullTime{Time: utils.TimeNow(), Valid: true}
+	return
+}
+
+func (u *BaseModel) AfterUpdate(tx *gorm.DB) (err error) {
+	return
 }

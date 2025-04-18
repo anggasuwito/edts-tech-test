@@ -10,14 +10,14 @@ import (
 )
 
 type UserHandler struct {
-	userUC usecase.UserUC
+	concertUC usecase.ConcertUC
 }
 
 func NewUserHandler(
-	userUC usecase.UserUC,
+	concertUC usecase.ConcertUC,
 ) *UserHandler {
 	return &UserHandler{
-		userUC: userUC,
+		concertUC: concertUC,
 	}
 }
 
@@ -27,16 +27,13 @@ func (h *UserHandler) SetupHandlers(r *gin.Engine) {
 }
 
 func (h *UserHandler) getUserPurchaseHistory(c *gin.Context) {
-	var req entity.GetUserPurchaseHistoryRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ResponseError(c, utils.ErrBadRequest("Invalid Body : "+err.Error(), "UserHandler.getUserPurchaseHistory.ShouldBindJSON"))
-		return
-	}
+	var req entity.GetConcertPurchaseHistoryListRequest
 
 	ctx, cancel := context.WithTimeout(c, 10*time.Second)
 	defer cancel()
 
-	resp, err := h.userUC.GetUserPurchaseHistory(ctx, &req)
+	req.Search = append(req.Search, &entity.Filter{Field: "user_phone", Value: c.Param("user_phone")})
+	resp, err := h.concertUC.GetConcertPurchaseHistoryList(ctx, &req)
 	if err != nil {
 		utils.ResponseError(c, err)
 		return
