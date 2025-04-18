@@ -47,6 +47,14 @@ func ErrUnauthorized(message, trace string) error {
 	}
 }
 
+func ErrTooManyRequest(message, trace string) error {
+	return &Error{
+		Code:    http.StatusTooManyRequests,
+		Message: message,
+		Trace:   trace,
+	}
+}
+
 func ErrForbidden(message, trace string) error {
 	return &Error{
 		Code:    http.StatusForbidden,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"edts-tech-test/config"
 	handler "edts-tech-test/internal/handler/http"
+	"edts-tech-test/internal/handler/http/middleware"
 	"edts-tech-test/internal/repository"
 	"edts-tech-test/internal/usecase"
 	"edts-tech-test/internal/utils"
@@ -16,36 +17,30 @@ import (
 	"time"
 )
 
-func setupMiddlewares(r *gin.Engine) {
+func setupGlobalMiddlewares(r *gin.Engine) {
 	//r.Use(cors())
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+	r.Use(middleware.RateLimiter)
 }
 
 func setupRouters(r *gin.Engine) {
 	cfg := config.GetConfig()
 
-	r.GET("", func(c *gin.Context) {
-		utils.ResponseSuccess(c, "Success run "+cfg.AppVersion, nil)
-	})
+	r.GET("", func(c *gin.Context) { utils.ResponseSuccess(c, "Success run "+cfg.AppVersion, nil) })
 
-	userAccountRepo := repository.NewUserAccountRepo(cfg.DBMaster)
-	transactionRepo := repository.NewTransactionRepo(cfg.DBMaster)
 	txWrapper := repository.NewTransactionWrapper(cfg.DBMaster)
+	concertRepo := repository.NewConcertRepo(cfg.DBMaster)
 
-	authUC := usecase.NewAuthUC(txWrapper, userAccountRepo)
-	userAccountUC := usecase.NewUserAccUC(userAccountRepo)
-	transactionUC := usecase.NewTransactionUC(txWrapper, userAccountRepo, transactionRepo)
+	concertUC := usecase.NewConcertUC(txWrapper, concertRepo)
 
-	handler.NewAuthHandler(authUC).SetupHandlers(r)
-	handler.NewUserAccHandler(userAccountUC).SetupHandlers(r)
-	handler.NewTransactionHandler(transactionUC).SetupHandlers(r)
+	handler.NewConcertHandler(concertUC)
 }
 
 func StartHttpServer() {
 	r := gin.New()
 	cfg := config.GetConfig()
-	setupMiddlewares(r)
+	setupGlobalMiddlewares(r)
 	setupRouters(r)
 	addr := fmt.Sprintf("%s:%s", cfg.HttpHost, cfg.HttpPort)
 

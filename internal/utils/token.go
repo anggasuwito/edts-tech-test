@@ -6,6 +6,7 @@ import (
 	"edts-tech-test/internal/domain/entity"
 	"encoding/json"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"time"
 )
