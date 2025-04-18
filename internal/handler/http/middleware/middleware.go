@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"edts-tech-test/internal/constant"
+	"edts-tech-test/config"
 	"edts-tech-test/internal/domain/entity"
 	"edts-tech-test/internal/utils"
 	"github.com/gin-gonic/gin"
@@ -13,6 +13,7 @@ const (
 )
 
 func TokenChecker(c *gin.Context) {
+	cfg := config.GetConfig()
 	authorization := c.GetHeader("Authorization")
 	token := strings.Split(authorization, "Bearer ")
 	if len(token) < 2 || token[1] == "" {
@@ -20,7 +21,7 @@ func TokenChecker(c *gin.Context) {
 		return
 	}
 	tokenStr := token[1]
-	tokenClaims, err := utils.VerifyJWT(tokenStr, constant.TokenTypeAccess)
+	tokenClaims, err := utils.VerifyJWT(tokenStr, cfg.AccessTokenSecret)
 	if err != nil {
 		utils.ResponseError(c, utils.ErrUnauthorized("Invalid Token", "middleware.TokenChecker.VerifyJWT"))
 		return
@@ -30,11 +31,20 @@ func TokenChecker(c *gin.Context) {
 	c.Next()
 }
 
-func GetContextValue(c *gin.Context) entity.JWTClaim {
+func GetUserContextValue(c *gin.Context) *entity.JWTClaimUser {
 	if value, exists := c.Get(dataKey); exists {
-		if data, ok := value.(entity.JWTClaim); ok {
-			return data
+		if res, ok := value.(*entity.JWTClaimUser); ok {
+			return res
 		}
 	}
-	return entity.JWTClaim{}
+	return &entity.JWTClaimUser{}
+}
+
+func GetAdminContextValue(c *gin.Context) *entity.JWTClaimAdmin {
+	if value, exists := c.Get(dataKey); exists {
+		if res, ok := value.(*entity.JWTClaimAdmin); ok {
+			return res
+		}
+	}
+	return &entity.JWTClaimAdmin{}
 }

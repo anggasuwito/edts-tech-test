@@ -1,9 +1,6 @@
 package utils
 
 import (
-	"edts-tech-test/config"
-	"edts-tech-test/internal/constant"
-	"edts-tech-test/internal/domain/entity"
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
@@ -11,38 +8,32 @@ import (
 	"time"
 )
 
-const claimsDataKey = "claims_data"
+const (
+	ClaimsDataKey = "claims_data"
+)
 
-func GenerateJWT(acc *entity.JWTClaimAccountInfo, tokenType string) (tokenStr string, data entity.JWTClaim, err error) {
+type JWTClaim struct {
+	ID        string      `json:"id"`
+	ExpiredAt int64       `json:"expired_at"`
+	Data      interface{} `json:"data"`
+}
+
+func GenerateJWT(claimData interface{}, secretKey string, expiredDuration time.Duration) (tokenStr string, data JWTClaim, err error) {
 	var (
-		tokenB          = jwt.New(jwt.SigningMethodHS256)
-		claims          = tokenB.Claims.(jwt.MapClaims)
-		cfg             = config.GetConfig()
-		expiredDuration string
-		secretKey       string
+		tokenB = jwt.New(jwt.SigningMethodHS256)
+		claims = tokenB.Claims.(jwt.MapClaims)
 	)
 
-	switch tokenType {
-	case constant.TokenTypeAccess:
-		expiredDuration = cfg.AccessTokenExpireDuration
-		secretKey = cfg.AccessTokenSecret
-	case constant.TokenTypeRefresh:
-		expiredDuration = cfg.RefreshTokenExpireDuration
-		secretKey = cfg.RefreshTokenSecret
-	}
-
-	tokenExpiredDuration, _ := time.ParseDuration(expiredDuration)
-
 	// Set payload
-	expiredAt := TimeNow().Add(tokenExpiredDuration).Unix()
-	data = entity.JWTClaim{
-		ID:          uuid.New().String(),
-		ExpiredAt:   expiredAt,
-		AccountInfo: acc,
+	expiredAt := TimeNow().Add(expiredDuration).Unix()
+	data = JWTClaim{
+		ID:        uuid.New().String(),
+		ExpiredAt: expiredAt,
+		Data:      claimData,
 	}
 
 	claims["expired_at"] = expiredAt
-	claims[claimsDataKey] = data
+	claims[ClaimsDataKey] = data
 
 	tokenStr, err = tokenB.SignedString([]byte(secretKey))
 	if err != nil {
@@ -51,24 +42,12 @@ func GenerateJWT(acc *entity.JWTClaimAccountInfo, tokenType string) (tokenStr st
 	return tokenStr, data, err
 }
 
-func VerifyJWT(token, tokenType string) (jwtClaim entity.JWTClaim, err error) {
-	var (
-		cfg    = config.GetConfig()
-		secret string
-	)
-
-	switch tokenType {
-	case constant.TokenTypeAccess:
-		secret = cfg.AccessTokenSecret
-	case constant.TokenTypeRefresh:
-		secret = cfg.RefreshTokenSecret
-	}
-
+func VerifyJWT(token, secretKey string) (jwtClaim JWTClaim, err error) {
 	tokenByte, err := jwt.Parse(token, func(jwtToken *jwt.Token) (interface{}, error) {
 		if _, ok := jwtToken.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %s", jwtToken.Header["alg"])
 		}
-		return []byte(secret), nil
+		return []byte(secretKey), nil
 	})
 	if err != nil {
 		return jwtClaim, err
@@ -79,7 +58,7 @@ func VerifyJWT(token, tokenType string) (jwtClaim entity.JWTClaim, err error) {
 		return jwtClaim, err
 	}
 
-	jsonClaims, err := json.Marshal(claims[claimsDataKey])
+	jsonClaims, err := json.Marshal(claims[ClaimsDataKey])
 	if err != nil {
 		return jwtClaim, err
 	}

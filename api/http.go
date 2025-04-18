@@ -34,7 +34,8 @@ func setupRouters(r *gin.Engine) {
 
 	concertUC := usecase.NewConcertUC(txWrapper, concertRepo)
 
-	handler.NewConcertHandler(concertUC)
+	handler.NewConcertHandler(concertUC).SetupHandlers(r)
+	handler.NewUserHandler(concertUC).SetupHandlers(r)
 }
 
 func StartHttpServer() {
