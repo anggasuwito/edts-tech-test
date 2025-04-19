@@ -13,7 +13,9 @@ func (m *ConcertPurchaseHistory) TableName() string {
 type ConcertPurchaseHistory struct {
 	BaseModel
 
-	ConcertID   string `gorm:"column:concert_id;size:36;"`
+	Concert *Concert `gorm:"foreignKey:ConcertID;references:ID"`
+
+	ConcertID   string `gorm:"column:concert_id;type:uuid;size:36;"`
 	UserPhone   string `gorm:"column:user_phone;size:100;"`
 	ConcertName string `gorm:"column:concert_name;size:255;"`
 	Price       int64  `gorm:"column:price"`

@@ -17,7 +17,7 @@ type ConcertRepo interface {
 	GetConcertPurchaseHistoryList(ctx context.Context, filter []*entity.Filter, sort []*entity.Filter, page, limit int64) ([]*model.ConcertPurchaseHistory, int64, error)
 	GetAndLockConcert(ctx context.Context, concertID string) (*model.Concert, error)
 	CreateConcertPurchaseHistory(ctx context.Context, req *model.ConcertPurchaseHistory) error
-	UpdateConcert(ctx context.Context, req *model.Concert) error
+	UpdateConcertQuota(ctx context.Context, concertID string, quota int64) error
 }
 
 type concertRepo struct {
@@ -66,7 +66,9 @@ func (r *concertRepo) GetConcertList(ctx context.Context, filter []*entity.Filte
 	}
 
 	for _, s := range sort {
-		q.Order(fmt.Sprintf("%s %s", s.Field, s.Value))
+		if s.Field != "" {
+			q.Order(fmt.Sprintf("%s %s", s.Field, s.Value))
+		}
 	}
 
 	if len(sort) < 1 {
@@ -101,7 +103,7 @@ func (r *concertRepo) GetConcertPurchaseHistoryList(ctx context.Context, filter 
 		valSlice := strings.Split(v.Value, "|")
 
 		switch v.Field {
-		case "id", "user_phone", "concert_name":
+		case "id", "user_phone", "concert_id":
 			if len(valSlice) > 1 {
 				q.Where(fmt.Sprintf("%s IN(?)", v.Field), valSlice)
 			} else {
@@ -111,7 +113,9 @@ func (r *concertRepo) GetConcertPurchaseHistoryList(ctx context.Context, filter 
 	}
 
 	for _, s := range sort {
-		q.Order(fmt.Sprintf("%s %s", s.Field, s.Value))
+		if s.Field != "" {
+			q.Order(fmt.Sprintf("%s %s", s.Field, s.Value))
+		}
 	}
 
 	if len(sort) < 1 {
@@ -158,14 +162,15 @@ func (r *concertRepo) CreateConcertPurchaseHistory(ctx context.Context, req *mod
 	return nil
 }
 
-func (r *concertRepo) UpdateConcert(ctx context.Context, req *model.Concert) error {
+func (r *concertRepo) UpdateConcertQuota(ctx context.Context, concertID string, quota int64) error {
 	err := r.useTX(ctx).
 		Debug().
-		Model(req).
-		Updates(req).
+		Model(&model.Concert{}).
+		Where("id = ?", concertID).
+		Update("ticket_quota", quota).
 		Error
 	if err != nil {
-		return utils.ErrInternal("Failed update concert : "+err.Error(), "concertRepo.UpdateConcert")
+		return utils.ErrInternal("Failed update concert quota : "+err.Error(), "concertRepo.UpdateConcertQuota")
 	}
 	return nil
 }

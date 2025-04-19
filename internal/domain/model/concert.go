@@ -13,6 +13,8 @@ func (m *Concert) TableName() string {
 type Concert struct {
 	BaseModel
 
+	ConcertPurchaseHistory []*ConcertPurchaseHistory `gorm:"foreignKey:ConcertID"`
+
 	AvailableFrom sql.NullTime `gorm:"column:available_from"`
 	AvailableTo   sql.NullTime `gorm:"column:available_to"`
 	TicketQuota   int64        `gorm:"column:ticket_quota"`

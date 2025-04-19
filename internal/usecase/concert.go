@@ -68,7 +68,6 @@ func (u *concertUC) GetConcertList(ctx context.Context, req *entity.GetConcertLi
 func (u *concertUC) BookingConcert(ctx context.Context, req *entity.BookingConcertRequest) (*entity.BookingConcertResponse, error) {
 	var (
 		now                    = utils.TimeNow()
-		updateConcert          = &model.Concert{}
 		concertPurchaseHistory = &model.ConcertPurchaseHistory{}
 	)
 
@@ -98,9 +97,7 @@ func (u *concertUC) BookingConcert(ctx context.Context, req *entity.BookingConce
 			}
 
 			//update ticket quota
-			updateConcert.ID = concert.ID
-			updateConcert.TicketQuota = concert.TicketQuota - req.Qty
-			err = u.concertRepo.UpdateConcert(ctxTX, updateConcert)
+			err = u.concertRepo.UpdateConcertQuota(ctxTX, concert.ID, concert.TicketQuota-req.Qty)
 			if err != nil {
 				return err
 			}

@@ -72,7 +72,7 @@ func (h *ConcertHandler) getConcertPurchaseHistory(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c, 10*time.Second)
 	defer cancel()
 
-	req.Search = append(req.Search, &entity.Filter{Field: "id", Value: c.Param("concert_id")})
+	req.Search = append(req.Search, &entity.Filter{Field: "concert_id", Value: c.Param("concert_id")})
 	resp, err := h.concertUC.GetConcertPurchaseHistoryList(ctx, &req)
 	if err != nil {
 		utils.ResponseError(c, err)

@@ -7,7 +7,7 @@ import (
 
 type (
 	GetConcertListRequest struct {
-		*ListPaginationRequest
+		ListPaginationRequest
 	}
 
 	GetConcertListResponse struct {
@@ -26,7 +26,7 @@ type (
 	}
 
 	GetConcertPurchaseHistoryListRequest struct {
-		*ListPaginationRequest
+		ListPaginationRequest
 	}
 
 	GetConcertPurchaseHistoryListResponse struct {

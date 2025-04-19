@@ -1,4 +1,4 @@
-**SIMPLE GOLANG EWALLET**
+**Readme.MD**
 
 ## 1.Example .env
 ```
@@ -23,24 +23,27 @@ REFRESH_TOKEN_EXPIRE_DURATION=120h
 
 ## 2.Example database diagram
 
-![img.png](img.png)
+![img_1.png](img_1.png)
 
 ## 3.Example request & response
 
-- API Register (Success)
+- API Concert List (Success)
 ![img.png](img.png)
 
-- API Register (Failed)
-![img_1.png](img_1.png)
+- API Concert Booking (Success)
+![img_7.png](img_7.png)
 
-- API Login (Success)
+- API Concert Booking (Failed Sale Not Started)
 ![img_2.png](img_2.png)
 
-- API Login (Failed)
+- API Concert Booking (Failed Overbooking)
 ![img_3.png](img_3.png)
 
-- API Update Profile (Success)
+- API Concert Purchase History (Success)
 ![img_5.png](img_5.png)
 
-- API Update Profile (Failed)
+- API User Purchase History (Success)
 ![img_4.png](img_4.png)
+
+- API Reach Rate Limiter
+![img_6.png](img_6.png)
